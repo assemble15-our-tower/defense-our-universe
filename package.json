@@ -1,0 +1,22 @@
+{
+  "name": "defense-our-universe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prettier": "^3.3.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "liha-engineer <liha.engineer@gmail.com>",
+  "license": "ISC",
+  "repository": "https://github.com/assemble15-our-tower/defense-our-universe.git"
+}
