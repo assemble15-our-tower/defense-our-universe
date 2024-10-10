@@ -2,11 +2,13 @@ import express from 'express';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
 import userRouter from './route/user.route.js';
+import { Server as SocketIO } from 'socket.io';
 
 dotenv.config();
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT;
+const io = new SocketIO(server);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
