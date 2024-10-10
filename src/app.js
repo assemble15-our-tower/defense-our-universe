@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const app = express();
 const server = createServer(app);
-const PORT = process.env.DATABASE_PORT;
+const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
