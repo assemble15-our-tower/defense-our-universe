@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import dotenv from 'dotenv';
 import userRouter from './route/user.route.js';
 import { Server as SocketIO } from 'socket.io';
+import { loadGameAssets } from './init/asset.js';
 
 dotenv.config();
 const app = express();
