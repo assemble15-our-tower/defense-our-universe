@@ -6,6 +6,14 @@
     <meta name="author" content="Changmin Kang" />
     <title>내일배움캠프 Node.js 트랙 타워 디펜스 게임</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
     <style>
       body {
         display: flex;
@@ -21,16 +29,38 @@
         display: none;
       }
       .button-container {
+        color: white;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        text-align: center;
+        /* gap: 20px; */
       }
       .button-container button {
+        width: 200px;
+        height: 50px;
         padding: 10px 20px;
-        font-size: 16px;
+        font-size: 25px;
+        font-weight: bold;
         cursor: pointer;
       }
+
+      .welcomebox img {
+        width: 400px;
+        height: 600px;
+      }
+
+      .loginbox {
+        display: flex;
+        margin-left: auto;
+        justify-content: right;
+        text-align: right;
+      }
+
+      .loginbox button {
+        margin-right: 20px;
+      }
+
     </style>
 
     <script type="module">
@@ -41,19 +71,35 @@
     </script>
   </head>
   <body>
-    <div class="button-container">
-      <h1 style="color: white">내일배움캠프 Node.js 트랙 타워 디펜스 게임</h1>
-      <button id="registerButton">회원가입</button>
-      <button id="loginButton">로그인</button>
-      <button id="playButton">게임 플레이</button>
+    <div class="loginbox">
+        <button id="registerButton" class="btn btn-secondary">회원가입</button>
+        <button id="loginButton" class="btn btn-light">로그인</button>
     </div>
-    <canvas id="gameCanvas" width="1920" height="1080"></canvas>
+
+    <div class="button-container">
+      <div class="welcomebox">
+        <h1>
+          미치고 환장하는 언터쳐블 듀오의<br />
+          save our universe
+        </h1>
+        <img
+          src="https://i5.walmartimages.com/seo/Adult-PLANTS-VS-ZOMBIES-Zombie-Costume_6c0e0858-9491-4d41-981f-4c99ea12d69c.ae6447756636cc2344d4a7e5c9df2771.jpeg"
+        />
+        <h3>
+          어서와, 타워디펜스는 처음이지?<br />
+          뭘 좋아할지 몰라서 아무렇게나 만들어봤어
+        </h3>
+      </div>
+      <button id="playButton" class="btn btn-warning">게임 플레이</button>
+    </div>
+
+    <canvas id="gameCanvas" width="1920 * 0.8" height="1080 * 0.8"></canvas>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 
     <body onload="noBack();" onpageshow="if(event.persisted) noBack();" onunload=""></body>
     <script type="module">
       // 토큰 확인
-      const token = localStorage.getItem('authorization');
+      const token = sessionStorage.getItem('authorization');
       // 로그인 상태에 따라 버튼 텍스트 변경
       const loginButton = document.getElementById('loginButton');
       const registerButton = document.getElementById('registerButton');
@@ -62,7 +108,6 @@
         registerButton.style.display = 'none';
         // 로그인이 되어있다면 로그인 텍스트가  로그아웃으로 텍스트 변경
         loginButton.textContent = '로그아웃';
-        
       }
 
       document.getElementById('registerButton').addEventListener('click', () => {
@@ -73,7 +118,7 @@
         if (token) {
           // 로그아웃 처리
           // 로그아웃이 되면 토큰 삭제
-          localStorage.removeItem('authorization');
+          sessionStorage.removeItem('authorization');
           alert('로그아웃되었습니다.');
           // 페이지 상태 초기화
           window.location.reload();
