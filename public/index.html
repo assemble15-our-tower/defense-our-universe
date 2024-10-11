@@ -32,6 +32,13 @@
         cursor: pointer;
       }
     </style>
+
+    <script type="module">
+      window.history.forward();
+      function noBack() {
+        window.history.forward();
+      }
+    </script>
   </head>
   <body>
     <div class="button-container">
@@ -42,6 +49,8 @@
     </div>
     <canvas id="gameCanvas" width="1920" height="1080"></canvas>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <body onload="noBack();" onpageshow="if(event.persisted) noBack();" onunload=""></body>
     <script type="module">
       // 토큰 확인
       const token = localStorage.getItem('authorization');
@@ -70,16 +79,10 @@
           window.location.href = 'login.html';
         }
       });
-
       document.getElementById('playButton').addEventListener('click', () => {
-        if (!token) {
-          alert('로그인 해라 ;');
-          window.location.href = 'login.html';
-        } else {
-          document.querySelector('.button-container').style.display = 'none';
-          document.getElementById('gameCanvas').style.display = 'block';
-          import('./game.js');
-        }
+        document.querySelector('.button-container').style.display = 'none';
+        document.getElementById('gameCanvas').style.display = 'block';
+        import('./game.js');
       });
     </script>
   </body>
