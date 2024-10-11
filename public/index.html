@@ -43,18 +43,43 @@
     <canvas id="gameCanvas" width="1920" height="1080"></canvas>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script type="module">
+      // 토큰 확인
+      const token = localStorage.getItem('authorization');
+
+      // 로그인 상태에 따라 버튼 텍스트 변경
+      const loginButton = document.getElementById('loginButton');
+      if (token) {
+        // 로그인이 되어있다면 로그인 텍스트가  로그아웃으로 텍스트 변경
+        loginButton.textContent = '로그아웃';
+      }
+
       document.getElementById('registerButton').addEventListener('click', () => {
         window.location.href = 'register.html';
       });
 
-      document.getElementById('loginButton').addEventListener('click', () => {
-        window.location.href = 'login.html';
+      loginButton.addEventListener('click', () => {
+        if (token) {
+          // 로그아웃 처리
+          // 로그아웃이 되면 토큰 삭제
+          localStorage.removeItem('authorization');
+          alert('로그아웃되었습니다.');
+          // 페이지 상태 초기화
+          window.location.reload();
+        } else {
+          // 로그인 페이지로 이동
+          window.location.href = 'login.html';
+        }
       });
 
       document.getElementById('playButton').addEventListener('click', () => {
-        document.querySelector('.button-container').style.display = 'none';
-        document.getElementById('gameCanvas').style.display = 'block';
-        import('./game.js');
+        if (!token) {
+          alert('로그인 해라 ;');
+          window.location.href = 'login.html';
+        } else {
+          document.querySelector('.button-container').style.display = 'none';
+          document.getElementById('gameCanvas').style.display = 'block';
+          import('./game.js');
+        }
       });
     </script>
   </body>
