@@ -54,12 +54,15 @@
     <script type="module">
       // 토큰 확인
       const token = localStorage.getItem('authorization');
-
       // 로그인 상태에 따라 버튼 텍스트 변경
       const loginButton = document.getElementById('loginButton');
+      const registerButton = document.getElementById('registerButton');
       if (token) {
+        // 로그인 되어있다면 회원가입 버튼 없애기
+        registerButton.style.display = 'none';
         // 로그인이 되어있다면 로그인 텍스트가  로그아웃으로 텍스트 변경
         loginButton.textContent = '로그아웃';
+        
       }
 
       document.getElementById('registerButton').addEventListener('click', () => {
