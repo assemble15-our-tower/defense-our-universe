@@ -1,14 +1,31 @@
 import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
+import { sendEvent } from './Socket.js';
+import monsterTable from './assets/monster.json' with {type: "json"};
+import monsterUnlockTable from './assets/monster_unlock.json' with {type: "json"};
+import stageTable from './assets/stage.json' with {type: "json"};
+import towerTable from './assets/tower.json' with {type: "json"};
 
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
 */
 
-let serverSocket; // 서버 웹소켓 객체
+const authorization = sessionStorage.getItem('authorization');
+if (!authorization) {
+  alert('로그인 해줘 제발 ..');
+  window.location.href = 'login.html';
+}
+
+// let serverSocket; // 서버 웹소켓 객체
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+//CONFIGS
+const MONSTER_CONFIG = monsterTable.data;
+const MONSTER_UNLOCK_CONFIG = monsterUnlockTable.data;
+const STAGE_DATA = stageTable.data;
+const TOWER_CONFIG = towerTable.data;
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 
@@ -19,7 +36,7 @@ let baseHp = 0; // 기지 체력
 let towerCost = 0; // 타워 구입 비용
 let numOfInitialTowers = 0; // 초기 타워 개수
 let monsterLevel = 0; // 몬스터 레벨
-let monsterSpawnInterval = 0; // 몬스터 생성 주기
+let monsterSpawnInterval = 3000; // 몬스터 생성 주기
 const monsters = [];
 const towers = [];
 
@@ -81,6 +98,7 @@ function generateRandomMonsterPath() {
 function initMap() {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 그리기
   drawPath();
+  sendEvent(2, { timestamp: Date.now() });
 }
 
 function drawPath() {
@@ -214,6 +232,7 @@ function gameLoop() {
         alert('게임 오버. 스파르타 본부를 지키지 못했다...ㅠㅠ');
         window.location.href = 'index.html';
         location.reload();
+        break;
       }
       monster.draw(ctx);
     } else {
@@ -248,14 +267,25 @@ Promise.all([
   new Promise((resolve) => (pathImage.onload = resolve)),
   ...monsterImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
 ]).then(() => {
-  /* 서버 접속 코드 (여기도 완성해주세요!) */
   const token = localStorage.getItem('authorization');
-  let somewhere;
-  serverSocket = io('http://localhost:9999', {
+
+  const serverSocket = io('http://localhost:9999', {
     auth: {
-      token: token, // 토큰이 저장된 어딘가에서 가져와야 합니다!
+      token, // 토큰이 저장된 어딘가에서 가져와야 합니다!
     },
   });
+
+  if (!isInitGame) {
+    initGame();
+  }
+
+  // serverSocket.on('connection', (data) => {
+  //   console.log('connect: ', data);
+  //   // userId = data.uuid;
+  //   initGame();
+  // });
+
+  let userId = null;
 
   /* 
     서버의 이벤트들을 받는 코드들은 여기다가 쭉 작성해주시면 됩니다! 
@@ -265,9 +295,23 @@ Promise.all([
       initGame();
     }
   */
-  serverSocket.on('connect', () => {
-    initGame();
+
+    const sendEvent = (handlerId, payload) => {
+      socket.emit('event', {
+        userId,
+        clientVersion: CLIENT_VERSION,
+        handlerId,
+        payload,
+      });
+      console.log('sendEvent의 payload 내용: ', payload);
+    };
+
+    
+  serverSocket.on('response', (data) => {
+    console.log(data);
   });
+
+
   serverSocket.on('disconnect', () => {});
 
   serverSocket.on('gameOver', () => {});
