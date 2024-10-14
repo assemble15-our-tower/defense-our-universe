@@ -6,6 +6,7 @@ import monsterTable from './assets/monster.json' with {type: "json"};
 import monsterUnlockTable from './assets/monster_unlock.json' with {type: "json"};
 import stageTable from './assets/stage.json' with {type: "json"};
 import towerTable from './assets/tower.json' with {type: "json"};
+import baseTable from './assets/base.json' with {type: "json"};
 
 /* 
   어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
@@ -26,17 +27,18 @@ const MONSTER_CONFIG = monsterTable.data;
 const MONSTER_UNLOCK_CONFIG = monsterUnlockTable.data;
 const STAGE_DATA = stageTable.data;
 const TOWER_CONFIG = towerTable.data;
+const BASE_CONFIG = baseTable.data;
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 
 let userGold = 0; // 유저 골드
 let base; // 기지 객체
-let baseHp = 0; // 기지 체력
+let baseHp = BASE_CONFIG[0].hp; // 기지 체력
 
 let towerCost = 0; // 타워 구입 비용
-let numOfInitialTowers = 0; // 초기 타워 개수
-let monsterLevel = 0; // 몬스터 레벨
-let monsterSpawnInterval = 3000; // 몬스터 생성 주기
+let numOfInitialTowers = TOWER_CONFIG[0].level + 1; // 초기 타워 개수
+let monsterLevel = STAGE_DATA[0].monsterLevel; // 몬스터 레벨
+let monsterSpawnInterval = STAGE_DATA[0].spawnInterval; // 몬스터 생성 주기
 const monsters = [];
 const towers = [];
 
@@ -237,6 +239,11 @@ function gameLoop() {
       monster.draw(ctx);
     } else {
       /* 몬스터가 죽었을 때 */
+      // 몬스터별로 골드 다르게 설정해놨고 그녀석의 골드를 주고싶음
+      const monsterScore = MONSTER_CONFIG[i].score
+      const monsterGold = MONSTER_CONFIG[i].gold
+      score += monsterScore;
+      userGold += monsterGold;
       monsters.splice(i, 1);
     }
   }
