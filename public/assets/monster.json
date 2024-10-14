@@ -3,9 +3,9 @@
     "version" : "1.0.0",
     "data" : [
         { "id" : 1, "score" : 100, "gold" : 1000, "image" : "images/monster1.png" },
-        { "id" : 2, "score" : 300, "gold" : 1000, "image" : "images/monster2.png" },
-        { "id" : 3, "score" : 1000, "gold" : 1000, "image" : "images/monster3.png" },
-        { "id" : 4, "score" : 2500, "gold" : 1000, "image" : "images/monster4.png" },
-        { "id" : 5, "score" : 4000, "gold" : 1000, "image" : "images/monster5.png" }
+        { "id" : 2, "score" : 100, "gold" : 1000, "image" : "images/monster2.png" },
+        { "id" : 3, "score" : 100, "gold" : 1000, "image" : "images/monster3.png" },
+        { "id" : 4, "score" : 100, "gold" : 1000, "image" : "images/monster4.png" },
+        { "id" : 5, "score" : 100, "gold" : 1000, "image" : "images/monster5.png" }
     ]
 }
