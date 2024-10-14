@@ -1,13 +1,13 @@
 {
-    "name": "stage",
-    "version": "1.0.0",
-    "data": [
-      { "id":  1000, "score": 0 },
-      { "id":  1001, "score": 3000 },
-      { "id":  1002, "score": 6000 },
-      { "id":  1003, "score": 12000 },
-      { "id":  1004, "score": 24000 },
-      { "id":  1005, "score": 36000 },
-      { "id":  1006, "score": 48000 }
-    ]
-  }
+  "name": "stage",
+  "version": "1.0.0",
+  "data": [
+    { "id": 1000, "score": 0, "spawnInterval": 6000, "monsterLevel": 1 },
+    { "id": 1001, "score": 1000, "spawnInterval": 5000, "monsterLevel": 1.7 },
+    { "id": 1002, "score": 2500, "spawnInterval": 4000, "monsterLevel": 3.2 },
+    { "id": 1003, "score": 4500, "spawnInterval": 3000, "monsterLevel": 4.1 },
+    { "id": 1004, "score": 7500, "spawnInterval": 2000, "monsterLevel": 5.6 },
+    { "id": 1005, "score": 9000, "spawnInterval": 1000, "monsterLevel": 7.3 },
+    { "id": 1006, "score": 15000, "spawnInterval": 500, "monsterLevel": 9 }
+  ]
+}
