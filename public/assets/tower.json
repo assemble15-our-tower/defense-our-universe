@@ -2,12 +2,6 @@
     "name": "tower",
     "version": "1.0.0",
     "data": [
-      { "level": 0, "cost": 1000 , "attackPower" : 0, "image" : "./images/tower1.png"},
-      { "level": 1, "cost": 3000 , "attackPower" : 25, "image" : "./images/tower2.png"}, 
-      { "level": 2, "cost": 6000 , "attackPower" : 40, "image" : "./images/tower2.png"},
-      { "level": 3, "cost": 12000 , "attackPower" : 55, "image" : "./images/tower3.png"},
-      { "level": 4, "cost": 24000 , "attackPower" : 75, "image" : "./images/tower3.png"},
-      { "level": 5, "cost": 36000 , "attackPower" : 90, "image" : "./images/tower4.png"},
-      { "level": 6, "cost": 48000 , "attackPower" : 150, "image" : "./images/tower4.png"}
+      { "level": 0, "cost": 1000, "attackPower" : 0, "image" : "./images/tower1.png" }
     ]
-  }
+   }

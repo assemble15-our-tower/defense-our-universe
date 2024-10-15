@@ -1,0 +1,12 @@
+{
+    "name": "tower_upgrade",
+    "version": "1.0.0",
+    "data": [
+      { "level": 1, "upgradeCost": 1000, "attackPower" : 10, "image" : "./images/tower2.png" }, 
+      { "level": 2, "upgradeCost": 1000, "attackPower" : 20, "image" : "./images/tower2.png" },
+      { "level": 3, "upgradeCost": 1000, "attackPower" : 30, "image" : "./images/tower3.png" },
+      { "level": 4, "upgradeCost": 1000, "attackPower" : 40, "image" : "./images/tower3.png" },
+      { "level": 5, "upgradeCost": 1000, "attackPower" : 50, "image" : "./images/tower4.png" },
+      { "level": 6, "upgradeCost": 1000, "attackPower" : 60, "image" : "./images/tower4.png" }
+    ]
+   }
