@@ -2,16 +2,16 @@ import { Base } from './base.js';
 import { Monster } from './monster.js';
 import { Tower } from './tower.js';
 import { sendEvent } from './Socket.js';
-import monsterTable from './assets/monster.json' with {type: "json"};
-import monsterUnlockTable from './assets/monster_unlock.json' with {type: "json"};
-import stageTable from './assets/stage.json' with {type: "json"};
-import towerTable from './assets/tower.json' with {type: "json"};
-import baseTable from './assets/base.json' with {type: "json"};
+// import Score from './Score.js';
+import './Socket.js';
+import { CLIENT_VERSION } from './Constants.js';
+import monsterTable from './assets/monster.json' with { type: 'json' };
+import monsterUnlockTable from './assets/monster_unlock.json' with { type: 'json' };
+import stageTable from './assets/stage.json' with { type: 'json' };
+import towerTable from './assets/tower.json' with { type: 'json' };
+import baseTable from './assets/base.json' with { type: 'json' };
 
-/* 
-  어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에 추가해주세요!
-*/
-
+// 어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에
 const authorization = sessionStorage.getItem('authorization');
 if (!authorization) {
   alert('로그인 해줘 제발 ..');
@@ -28,22 +28,22 @@ const MONSTER_UNLOCK_CONFIG = monsterUnlockTable.data;
 const STAGE_DATA = stageTable.data;
 const TOWER_CONFIG = towerTable.data;
 const BASE_CONFIG = baseTable.data;
+const towers = [];
+const monsters = [];
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 
-let userGold = 0; // 유저 골드
+let userGold = 2000; // 유저 골드
 let base; // 기지 객체
 let baseHp = BASE_CONFIG[0].hp; // 기지 체력
 
-let towerCost = 0; // 타워 구입 비용
+let towerCost = TOWER_CONFIG[0].cost; // 타워 구입 비용
 let numOfInitialTowers = TOWER_CONFIG[0].level + 1; // 초기 타워 개수
 let monsterLevel = STAGE_DATA[0].monsterLevel; // 몬스터 레벨
-let monsterSpawnInterval = STAGE_DATA[0].spawnInterval; // 몬스터 생성 주기
-const monsters = [];
-const towers = [];
+let monsterSpawnInterval = 2000; // 몬스터 생성 주기
 
 let score = 0; // 게임 점수
-let highScore = 0; // 기존 최고 점수
+const highScore = Number(localStorage.getItem('highScore')); // 기존 최고 점수
 let isInitGame = false;
 
 // 이미지 로딩 파트
@@ -51,13 +51,22 @@ const backgroundImage = new Image();
 backgroundImage.src = 'images/bg.webp';
 
 const towerImage = new Image();
-towerImage.src = 'images/tower.png';
+towerImage.src = 'images/tower1.png';
 
 const baseImage = new Image();
 baseImage.src = 'images/base.png';
 
+const burningbaseImage = new Image();
+burningbaseImage.src = 'images/base_fire.png';
+
 const pathImage = new Image();
 pathImage.src = 'images/path.png';
+
+const defeatSound = new Audio();
+defeatSound.src = 'sounds/defeat2.mp3';
+
+const bgmSource = new Audio();
+bgmSource.src = 'sounds/start_of_adventure.wav';
 
 const monsterImages = [];
 for (let i = 1; i <= NUM_OF_MONSTERS; i++) {
@@ -100,7 +109,7 @@ function generateRandomMonsterPath() {
 function initMap() {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 그리기
   drawPath();
-  sendEvent(2, { timestamp: Date.now() });
+  sendEvent(2, { message: '게임 시작' });
 }
 
 function drawPath() {
@@ -160,13 +169,9 @@ function getRandomPositionNearPath(maxDistance) {
 }
 
 function placeInitialTowers() {
-  /* 
-    타워를 초기에 배치하는 함수입니다.
-    무언가 빠진 코드가 있는 것 같지 않나요? 
-  */
   for (let i = 0; i < numOfInitialTowers; i++) {
     const { x, y } = getRandomPositionNearPath(200);
-    const tower = new Tower(x, y, towerCost);
+    const tower = new Tower(x, y, 0);
     towers.push(tower);
     tower.draw(ctx, towerImage);
   }
@@ -177,10 +182,61 @@ function placeNewTower() {
     타워를 구입할 수 있는 자원이 있을 때 타워 구입 후 랜덤 배치하면 됩니다.
     빠진 코드들을 채워넣어주세요! 
   */
+  // 돈이 있어야 타워를 사든 말든 하지!
+
+  if (userGold < towerCost) {
+    alert('소지금이 부족해!');
+    return;
+  }
+  userGold -= towerCost;
   const { x, y } = getRandomPositionNearPath(200);
-  const tower = new Tower(x, y);
+  const tower = new Tower(x, y, 0);
+  const towerLevel = tower.level;
+  sendEvent(99, { x, y, towerLevel });
   towers.push(tower);
   tower.draw(ctx, towerImage);
+}
+
+function setHighScore() {
+  const highScore = Number(localStorage.getItem('highScore'));
+  if (!highScore || score > highScore) {
+    localStorage.setItem('highScore', Math.floor(score));
+  }
+}
+
+// 타워들 저장 배열인 towers가 game.js 안에 있다
+// 타워들의 현재 레벨만 불러올 수 있다면 업그레이드 할 수 있을 것 같은데...
+
+export const upgradeTower = () => {
+  // 레벨 내림차순으로 정렬 -> 가장 낮은 애부터 순차로 레벨업 하는 식으로 해보자
+  // 타워 테이블에서 지금 타워 레벨 + 1에 해당하는 업그레이드 비용을 가져오고 싶다.
+  const currentTowerLevels = towers.map((tower) => tower.level);
+  currentTowerLevels.sort((a, b) => b-a);
+  console.log('currentTowerLevels?:', currentTowerLevels);
+  
+  let lastTowerLevel = currentTowerLevels[currentTowerLevels.length - 1];
+  const upgradeCost = TOWER_CONFIG.find((config) => config.level === lastTowerLevel + 1).cost;
+  
+  console.log('upgradeCost는?', upgradeCost);
+  console.log('towers는?', towers);
+  
+  if (upgradeCost) {
+    if (upgradeCost * towers.length <= userGold) {
+      userGold -= upgradeCost * towers.length;
+      // 소지금이 충분하다면 소지금에서 업그레이드 금액만큼을 빼고 
+      // 현재 타워 레벨을 적은 것부터 한개씩 늘려줘
+      // 다만 한계 레벨이 된다면 레벨업 그만하도록
+
+      lastTowerLevel += 1;
+      // 올라간 레벨에 맞는 이미지로 변경
+      towerImage.src = TOWER_CONFIG.find((config) => config.level === lastTowerLevel).image;
+      // 올라간 레벨에 맞는 스탯으로 변경
+      towers.draw(ctx, towerImage, lastTowerLevel)
+      
+    } else {
+      alert('업그레이드에 필요한 소지금이 없어!');
+    }
+  }
 }
 
 function placeBase() {
@@ -198,7 +254,10 @@ function gameLoop() {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 다시 그리기
   drawPath(monsterPath); // 경로 다시 그리기
 
-  ctx.font = '25px Times New Roman';
+  bgmSource.volume = 0.1;
+  bgmSource.play();
+
+  ctx.font = 'bold 25px Times New Roman';
   ctx.fillStyle = 'skyblue';
   ctx.fillText(`최고 기록: ${highScore}`, 100, 50); // 최고 기록 표시
   ctx.fillStyle = 'white';
@@ -224,14 +283,20 @@ function gameLoop() {
 
   // 몬스터가 공격을 했을 수 있으므로 기지 다시 그리기
   base.draw(ctx, baseImage);
-
   for (let i = monsters.length - 1; i >= 0; i--) {
     const monster = monsters[i];
     if (monster.hp > 0) {
       const isDestroyed = monster.move(base);
+      if (base.hp <= base.maxHp / 2) {
+        base.draw(ctx, burningbaseImage);
+      }
       if (isDestroyed) {
         /* 게임 오버 */
+        bgmSource.pause();
+        setHighScore();
+        sendEvent(3, { score });
         alert('게임 오버. 스파르타 본부를 지키지 못했다...ㅠㅠ');
+
         window.location.href = 'index.html';
         location.reload();
         break;
@@ -239,11 +304,24 @@ function gameLoop() {
       monster.draw(ctx);
     } else {
       /* 몬스터가 죽었을 때 */
-      // 몬스터별로 골드 다르게 설정해놨고 그녀석의 골드를 주고싶음
-      const monsterScore = MONSTER_CONFIG[i].score
-      const monsterGold = MONSTER_CONFIG[i].gold
+      defeatSound.volume = 0.2;
+      defeatSound.play();
+
+      const monsterScore = MONSTER_CONFIG[i].score;
+      const monsterGold = MONSTER_CONFIG[i].gold;
+
       score += monsterScore;
       userGold += monsterGold;
+
+      sendEvent(17, { monsterScore, monsterGold, score });
+
+      if (score % 2000 === 0) {
+        monsterLevel++;
+        monsterSpawnInterval -= 500;
+        base.hp += 30 * monsterLevel;
+        base.maxHp += 30 * monsterLevel;
+      }
+
       monsters.splice(i, 1);
     }
   }
@@ -274,54 +352,18 @@ Promise.all([
   new Promise((resolve) => (pathImage.onload = resolve)),
   ...monsterImages.map((img) => new Promise((resolve) => (img.onload = resolve))),
 ]).then(() => {
-  const token = localStorage.getItem('authorization');
-
-  const serverSocket = io('http://localhost:9999', {
-    auth: {
-      token, // 토큰이 저장된 어딘가에서 가져와야 합니다!
-    },
-  });
-
   if (!isInitGame) {
     initGame();
   }
-
-  // serverSocket.on('connection', (data) => {
-  //   console.log('connect: ', data);
-  //   // userId = data.uuid;
-  //   initGame();
-  // });
-
-  let userId = null;
-
   /* 
     서버의 이벤트들을 받는 코드들은 여기다가 쭉 작성해주시면 됩니다! 
     e.g. serverSocket.on("...", () => {...});
-    이 때, 상태 동기화 이벤트의 경우에 아래의 코드를 마지막에 넣어주세요! 최초의 상태 동기화 이후에 게임을 초기화해야 하기 때문입니다! 
+    이 때, 상태 동기화 이벤트의 경우에 아래의 코드를 마지막에 넣어주세요! 
+    최초의 상태 동기화 이후에 게임을 초기화해야 하기 때문입니다! 
     if (!isInitGame) {
       initGame();
     }
   */
-
-    const sendEvent = (handlerId, payload) => {
-      socket.emit('event', {
-        userId,
-        clientVersion: CLIENT_VERSION,
-        handlerId,
-        payload,
-      });
-      console.log('sendEvent의 payload 내용: ', payload);
-    };
-
-    
-  serverSocket.on('response', (data) => {
-    console.log(data);
-  });
-
-
-  serverSocket.on('disconnect', () => {});
-
-  serverSocket.on('gameOver', () => {});
 });
 
 const buyTowerButton = document.createElement('button');
@@ -336,3 +378,16 @@ buyTowerButton.style.cursor = 'pointer';
 buyTowerButton.addEventListener('click', placeNewTower);
 
 document.body.appendChild(buyTowerButton);
+
+const upgradeTowerButton = document.createElement('button');
+upgradeTowerButton.textContent = '타워 업그레이드';
+upgradeTowerButton.style.position = 'absolute';
+upgradeTowerButton.style.top = '10px';
+upgradeTowerButton.style.right = '150px';
+upgradeTowerButton.style.padding = '10px 20px';
+upgradeTowerButton.style.fontSize = '16px';
+upgradeTowerButton.style.cursor = 'pointer';
+
+upgradeTowerButton.addEventListener('click', upgradeTower);
+
+document.body.appendChild(upgradeTowerButton);

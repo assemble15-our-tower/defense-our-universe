@@ -2,21 +2,20 @@ import express from 'express';
 import { createServer } from 'http';
 import dotenv from 'dotenv';
 import userRouter from './route/user.route.js';
-import { Server as SocketIO } from 'socket.io';
 import { loadGameAssets } from './init/asset.js';
+import initSocket from './init/socket.js';
 
 dotenv.config();
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT;
-const io = new SocketIO(server);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public'));
+initSocket(server);
 
 app.use('/api', userRouter);
-app.use(express.static('public'));
-
 app.get('/', (req, res) => {
   res.send('Hello world!');
 });

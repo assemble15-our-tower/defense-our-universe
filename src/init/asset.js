@@ -31,13 +31,15 @@ const readFileAsync = (filename) => {
 // Primise.all(); -> 이걸로 파일 세개 비동기 병렬로 읽을 것
 export const loadGameAssets = async () => {
   try {
-    const [stages, monsters, monsterUnlocks] = await Promise.all([
+    const [stages, monsters, monsterUnlocks, bases, towers ] = await Promise.all([
       readFileAsync('stage.json'),
       readFileAsync('monster.json'),
       readFileAsync('monster_unlock.json'),
+      readFileAsync('base.json'),
+      readFileAsync('tower.json'),
     ]);
 
-    gameAssets = { stages, monsters, monsterUnlocks };
+    gameAssets = { stages, monsters, monsterUnlocks, bases, towers };
     return gameAssets;
   } catch (e) {
     // 여기서 throw new Error로 에러를 던졌는데, 
