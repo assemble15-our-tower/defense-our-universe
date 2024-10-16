@@ -1,11 +1,11 @@
 const userGold = new Map();
 
 export const initializeGold = (userId, payload) => {
-  const { gold: initialUserGold } = payload;
+  const { userGold : initialUserGold } = payload;
   if (!initialUserGold) {
     userGold.set(userId, 0);
   }
-  userGold.set(userId, +initialUserGold);
+  return userGold.set(userId, +initialUserGold);
 };
 
 export const setuserGold = (userId, gold) => {
