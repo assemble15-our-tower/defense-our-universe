@@ -10,6 +10,7 @@ import monsterUnlockTable from './assets/monster_unlock.json' with { type: 'json
 import stageTable from './assets/stage.json' with { type: 'json' };
 import towerTable from './assets/tower.json' with { type: 'json' };
 import baseTable from './assets/base.json' with { type: 'json' };
+import towerUpgradeTable from './assets/tower_upgrade.json' with { type: 'json' };
 
 // 어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에
 const authorization = sessionStorage.getItem('authorization');
@@ -27,13 +28,14 @@ const MONSTER_CONFIG = monsterTable.data;
 const MONSTER_UNLOCK_CONFIG = monsterUnlockTable.data;
 const STAGE_DATA = stageTable.data;
 const TOWER_CONFIG = towerTable.data;
+const UPGRADE_CONFIG = towerUpgradeTable.data;
 const BASE_CONFIG = baseTable.data;
 const towers = [];
 const monsters = [];
 
 const NUM_OF_MONSTERS = 5; // 몬스터 개수
 
-let userGold = 2000; // 유저 골드
+let userGold = 100000; // 유저 골드
 let base; // 기지 객체
 let baseHp = BASE_CONFIG[0].hp; // 기지 체력
 
@@ -178,23 +180,15 @@ function placeInitialTowers() {
 }
 
 function placeNewTower() {
-  /* 
-    타워를 구입할 수 있는 자원이 있을 때 타워 구입 후 랜덤 배치하면 됩니다.
-    빠진 코드들을 채워넣어주세요! 
-  */
-  // 돈이 있어야 타워를 사든 말든 하지!
-
   if (userGold < towerCost) {
     alert('소지금이 부족해!');
     return;
   }
-  userGold -= towerCost;
-  const { x, y } = getRandomPositionNearPath(200);
-  const tower = new Tower(x, y, 0);
-  const towerLevel = tower.level;
-  sendEvent(99, { x, y, towerLevel });
-  towers.push(tower);
-  tower.draw(ctx, towerImage);
+  userGold -= towerCost; // 타워 구입 비용 차감
+  const { x, y } = getRandomPositionNearPath(200); // 랜덤 위치 생성
+  const tower = new Tower(x, y, 0); // 타워 생성
+  towers.push(tower); // 타워 배열에 추가
+  tower.draw(ctx, towerImage); // 타워 그리기
 }
 
 function setHighScore() {
@@ -208,36 +202,34 @@ function setHighScore() {
 // 타워들의 현재 레벨만 불러올 수 있다면 업그레이드 할 수 있을 것 같은데...
 
 export const upgradeTower = () => {
-  // 레벨 내림차순으로 정렬 -> 가장 낮은 애부터 순차로 레벨업 하는 식으로 해보자
-  // 타워 테이블에서 지금 타워 레벨 + 1에 해당하는 업그레이드 비용을 가져오고 싶다.
+  // 현재 타워 레벨을 배열로 가져오기
   const currentTowerLevels = towers.map((tower) => tower.level);
-  currentTowerLevels.sort((a, b) => b-a);
-  console.log('currentTowerLevels?:', currentTowerLevels);
-  
-  let lastTowerLevel = currentTowerLevels[currentTowerLevels.length - 1];
-  const upgradeCost = TOWER_CONFIG.find((config) => config.level === lastTowerLevel + 1).cost;
-  
-  console.log('upgradeCost는?', upgradeCost);
-  console.log('towers는?', towers);
-  
-  if (upgradeCost) {
-    if (upgradeCost * towers.length <= userGold) {
-      userGold -= upgradeCost * towers.length;
-      // 소지금이 충분하다면 소지금에서 업그레이드 금액만큼을 빼고 
-      // 현재 타워 레벨을 적은 것부터 한개씩 늘려줘
-      // 다만 한계 레벨이 된다면 레벨업 그만하도록
+  console.log('현재 타워 레벨:', currentTowerLevels);
 
-      lastTowerLevel += 1;
-      // 올라간 레벨에 맞는 이미지로 변경
-      towerImage.src = TOWER_CONFIG.find((config) => config.level === lastTowerLevel).image;
-      // 올라간 레벨에 맞는 스탯으로 변경
-      towers.draw(ctx, towerImage, lastTowerLevel)
-      
+  // 모든 타워 업그레이드 비용 계산
+  let totalUpgradeCost = 0;
+
+  towers.forEach((tower) => {
+    const nextLevel = tower.level + 1; // 다음 레벨
+    const upgradeCost = towerUpgradeTable.data[nextLevel]?.cost; // 다음 레벨의 업그레이드 비용
+
+    if (upgradeCost) {
+      totalUpgradeCost += upgradeCost; // 다음 레벨의 업그레이드 비용 누적
     } else {
-      alert('업그레이드에 필요한 소지금이 없어!');
+      console.warn(`Level ${nextLevel}에 대한 업그레이드 비용이 없습니다.`);
     }
+  });
+
+  console.log('총 업그레이드 비용:', totalUpgradeCost);
+
+  // 소지금이 충분한 경우 업그레이드
+  if (totalUpgradeCost <= userGold) {
+    userGold -= totalUpgradeCost; // 소지금 차감
+    towers.forEach((tower) => tower.upgrade()); // 모든 타워 업그레이드
+  } else {
+    alert('업그레이드에 필요한 소지금이 부족합니다!'); // 오류 메시지
   }
-}
+};
 
 function placeBase() {
   const lastPoint = monsterPath[monsterPath.length - 1];
