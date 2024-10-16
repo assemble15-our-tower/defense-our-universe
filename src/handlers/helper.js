@@ -4,6 +4,8 @@ import { initializeStage, setStage } from '../models/stage.model.js';
 import { getUser, removeUser } from '../models/user.model.js';
 import { initializeTower } from '../models/tower.model.js';
 import handlerMappings from './handlerMapping.js';
+import { initializeScore } from '../models/score.model.js';
+import { initializeGold } from '../models/usergold.model.js';
 
 export const handleDisconnect = (socket, uuid) => {
   removeUser(socket.id, uuid);
@@ -17,6 +19,8 @@ export const handleConnection = (socket, uuid) => {
 
   // 접속하자마자 바로 시작이라서 바로 스테이지와 타워 초기화
   initializeStage(uuid);
+  initializeScore(uuid);
+  initializeGold(uuid);
   initializeTower(uuid);
 
   const { stages } = getGameAssets();
@@ -49,5 +53,6 @@ export const handlerEvent = (io, socket, data) => {
     return;
   }
   
+  console.log('야 response 뭐냐?', response)
   socket.emit('responese', response);
 };
