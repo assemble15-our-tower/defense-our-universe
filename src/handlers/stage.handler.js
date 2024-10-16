@@ -26,12 +26,6 @@ export const moveStageHandler = (userId, payload) => {
       return { status: 'fail', message: 'Target stage not found' };
     }
   
-    // const totalScore = calculateTotalScore(currentStages, true, userItems);
-  
-    // if (targetStageInfo.score > totalScore) {
-    //   return { status: 'fail', message: 'Invalid elapsed Time!' };
-    // }
-  
     // 유저의 다음 스테이지 정보 업데이트
     setStage(userId, payload.targetStage);
     return { status: 'success', hanlder: 11 };
