@@ -8,9 +8,8 @@ import { moveStageHandler } from './stage.handler.js';
 // 몬스터 처리에 대한 핸들러 - 페이로드에서 몬스터 처치당 점수와 골드를 받는다
 export const eliminateMonster = (userId, payload) => {
   const { monsters } = getGameAssets();
-  const { monsterId, monsterScore, monsterGold, monsterLevel, score, userGold } = payload;
+  const { monsterId, monsterScore, monsterGold, score, userGold } = payload;
 
-  console.log('monsterId?: ', monsterId);
   // 몬스터 정보 조회
   const monster = monsters.data.find((monster) => (monster.id = monsterId));
   if (!monster) {
@@ -48,14 +47,13 @@ export const eliminateMonster = (userId, payload) => {
     const stage = stageTable[i];
     if (
       Math.floor(score) >= stage.score &&
-      stage.id !== stageTable[0].id
+      stage.id > stageTable[0].id && 
+      stage.id !== stageTable[0].id 
     ) {
       const previousStage = currentStage;
       currentStage = stage.id;
 
-      // 해당 스테이지로 변경됨을 표시
-      //   stageChanged[stage.id] = true;
-
+      // 스테이지 변경 핸들러 호출해서 현재 유저의 스테이지
       moveStageHandler(userId, { currentStage: previousStage, targetStage: currentStage });
 
       // 스테이지 변경 후 반복문 종료

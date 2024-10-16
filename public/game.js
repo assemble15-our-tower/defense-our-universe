@@ -11,7 +11,6 @@ import stageTable from './assets/stage.json' with { type: 'json' };
 import towerTable from './assets/tower.json' with { type: 'json' };
 import towerUpgradeTable from './assets/tower_upgrade.json' with { type: 'json' };
 import baseTable from './assets/base.json' with { type: 'json' };
-import towerUpgradeTable from './assets/tower_upgrade.json' with { type: 'json' };
 
 // 어딘가에 엑세스 토큰이 저장이 안되어 있다면 로그인을 유도하는 코드를 여기에
 const authorization = sessionStorage.getItem('authorization');
@@ -43,7 +42,7 @@ let baseHp = BASE_CONFIG[0].hp; // 기지 체력
 let towerCost = TOWER_CONFIG[0].cost; // 타워 구입 비용
 let numOfInitialTowers = TOWER_CONFIG[0].level + 1; // 초기 타워 개수
 let monsterLevel = STAGE_DATA[0].monsterLevel; // 몬스터 레벨
-let monsterSpawnInterval = 5000; // 몬스터 생성 주기
+let monsterSpawnInterval = STAGE_DATA[0].spawnInterval; // 몬스터 생성 주기
 
 let score = 0; // 게임 점수
 const highScore = Number(localStorage.getItem('highScore')); // 기존 최고 점수
@@ -310,7 +309,7 @@ function gameLoop() {
 
 
 
-      sendEvent(17, { monsterId, monsterScore, monsterGold, monsterLevel, score, userGold });
+      sendEvent(17, { monsterId, monsterScore, monsterGold, score, userGold });
 
       if (score % 2000 === 0) {
         monsterLevel++;
