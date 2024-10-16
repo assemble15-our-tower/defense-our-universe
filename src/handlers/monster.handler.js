@@ -1,33 +1,67 @@
 import { getGameAssets } from '../init/asset.js';
+import { getScore, setScore } from '../models/score.model.js';
 import { getStage } from '../models/stage.model.js';
+import { getuserGold, setuserGold } from '../models/usergold.model.js';
+import stageTable from '../../public/assets/stage.json' with { type: 'json' };
+import { moveStageHandler } from './stage.handler.js';
 
+// 몬스터 처리에 대한 핸들러 - 페이로드에서 몬스터 처치당 점수와 골드를 받는다
+export const eliminateMonster = (userId, payload) => {
+  const { monsters } = getGameAssets();
+  const { monsterId, monsterScore, monsterGold, monsterLevel, score, userGold } = payload;
 
-export const handleEliminateMonster = (userId, payload) => {
+  console.log('monsterId?: ', monsterId);
+  // 몬스터 정보 조회
+  const monster = monsters.data.find((monster) => (monster.id = monsterId));
+  if (!monster) {
+    return { status: 'fail', message: 'Invalid monster info' };
+  }
+  // 몬스터 id에 맞게 할당된 스코어인지 검증
+  if (monster.score !== monsterScore) {
+    return { status: 'fail', message: 'Monster score mismatch' };
+  }
+  // 몬스터 id에 맞게 할당된 골드인지 검증
+  if (monster.gold !== monsterGold) {
+    return { status: 'fail', message: 'Monster gold mismatch' };
+  }
 
-    console.log('핸들몬스터의 페이로드?', payload)
-    // const { monsters, monsterUnlocks } = getGameAssets();
-    // const { monsterId } = payload;
+  // 몬스터도 있고 id에 할당된 골드, 스코어도 맞다면 더해준다
+  const savedScore = getScore(userId);
+  const earnedScore = savedScore + monster.score;
+  const savedGold = getuserGold(userId);
+  const earnedGold = savedGold + monster.gold;
 
-    // // 일단 몬스터 정보 조회
-    // const monster = monsters.data.find((monster) => monster.id = monsterId);
-    // if(!monster) {
-    //     return { status: 'fail', message : 'Invalid monster Info' };
-    // }
+  // 클라단에서 전해준 스코어, 골드와 비교해 유효한지 검증
+  if (score !== earnedScore) {
+    return { status: 'fail', message: 'Invalid score gaining' };
+  }
+  if (userGold !== earnedGold) {
+    return { status: 'fail', message: 'Invalid gold gaining' };
+  }
+  setScore(userId, earnedScore);
+  setuserGold(userId, earnedGold);
 
-    // // 유저의 현재 스테이지 정보 조회
-    // const currentStages = getStage(userId);
-    // if(!currentStages) {
-    //     return { status : 'fail', message : 'No stages for this user'};
-    // }
+  // 일정 스테이지 이상이면 스테이지를 이동시켜 주고 싶다
 
-    // const currentStage = currentStages[currentStages.length -1].id;
+  let currentStage = getStage(userId);
+  for (let i = 0; i < stageTable.length; i++) {
+    const stage = stageTable[i];
+    if (
+      Math.floor(score) >= stage.score &&
+      stage.id !== stageTable[0].id
+    ) {
+      const previousStage = currentStage;
+      currentStage = stage.id;
 
-    // // 현재 스테이지에서 나올 수 있는 몬스터인지 검증
-    // const allowMonsters = monsterUnlocks.data.find((monster) => monster.stage_id === currentStage).monster_ids;
-    // if(!allowMonsters.includes(monsterId)) {
-    //     return { status : 'fail', message : 'Not allowed monster for this stage!!'};
-    // }
+      // 해당 스테이지로 변경됨을 표시
+      //   stageChanged[stage.id] = true;
 
-    // return { status : 'success', handler : 17 }
+      moveStageHandler(userId, { currentStage: previousStage, targetStage: currentStage });
 
-}
+      // 스테이지 변경 후 반복문 종료
+      break;
+    }
+  }
+
+  return { status: 'success', score: earnedScore, handler: 17 };
+};
