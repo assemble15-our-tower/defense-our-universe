@@ -9,6 +9,7 @@ import monsterTable from './assets/monster.json' with { type: 'json' };
 import monsterUnlockTable from './assets/monster_unlock.json' with { type: 'json' };
 import stageTable from './assets/stage.json' with { type: 'json' };
 import towerTable from './assets/tower.json' with { type: 'json' };
+import towerUpgradeTable from './assets/tower_upgrade.json' with { type: 'json' };
 import baseTable from './assets/base.json' with { type: 'json' };
 import towerUpgradeTable from './assets/tower_upgrade.json' with { type: 'json' };
 
@@ -19,7 +20,6 @@ if (!authorization) {
   window.location.href = 'login.html';
 }
 
-// let serverSocket; // 서버 웹소켓 객체
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -28,8 +28,9 @@ const MONSTER_CONFIG = monsterTable.data;
 const MONSTER_UNLOCK_CONFIG = monsterUnlockTable.data;
 const STAGE_DATA = stageTable.data;
 const TOWER_CONFIG = towerTable.data;
-const UPGRADE_CONFIG = towerUpgradeTable.data;
+const TOWER_UPGRADE_CONFIG = towerUpgradeTable.data;
 const BASE_CONFIG = baseTable.data;
+
 const towers = [];
 const monsters = [];
 
@@ -42,7 +43,7 @@ let baseHp = BASE_CONFIG[0].hp; // 기지 체력
 let towerCost = TOWER_CONFIG[0].cost; // 타워 구입 비용
 let numOfInitialTowers = TOWER_CONFIG[0].level + 1; // 초기 타워 개수
 let monsterLevel = STAGE_DATA[0].monsterLevel; // 몬스터 레벨
-let monsterSpawnInterval = 2000; // 몬스터 생성 주기
+let monsterSpawnInterval = 5000; // 몬스터 생성 주기
 
 let score = 0; // 게임 점수
 const highScore = Number(localStorage.getItem('highScore')); // 기존 최고 점수
@@ -82,7 +83,7 @@ let monsterPath;
 function generateRandomMonsterPath() {
   const path = [];
   let currentX = 0;
-  let currentY = Math.floor(Math.random() * 21) + 500; // 500 ~ 520 범위의 y 시작 (캔버스 y축 중간쯤에서 시작할 수 있도록 유도)
+  let currentY = Math.floor(Math.random() * 21) + 450; // 450 ~ 470 범위의 y 시작 (캔버스 y축 중간쯤에서 시작할 수 있도록 유도)
 
   path.push({ x: currentX, y: currentY });
 
@@ -111,7 +112,7 @@ function generateRandomMonsterPath() {
 function initMap() {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height); // 배경 이미지 그리기
   drawPath();
-  sendEvent(2, { message: '게임 시작' });
+  sendEvent(2, {userGold , message : '게임 시작'});
 }
 
 function drawPath() {
@@ -296,16 +297,20 @@ function gameLoop() {
       monster.draw(ctx);
     } else {
       /* 몬스터가 죽었을 때 */
-      defeatSound.volume = 0.2;
+      defeatSound.volume = 0.1;
       defeatSound.play();
 
+      // monsterNumber가 인덱스라서 + 1 해줘야 monsterId가 나온다
+      const monsterId = monsters[i].monsterNumber + 1
       const monsterScore = MONSTER_CONFIG[i].score;
       const monsterGold = MONSTER_CONFIG[i].gold;
 
       score += monsterScore;
       userGold += monsterGold;
 
-      sendEvent(17, { monsterScore, monsterGold, score });
+
+
+      sendEvent(17, { monsterId, monsterScore, monsterGold, monsterLevel, score, userGold });
 
       if (score % 2000 === 0) {
         monsterLevel++;
