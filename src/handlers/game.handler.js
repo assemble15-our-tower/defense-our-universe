@@ -1,9 +1,13 @@
 import { getGameAssets } from '../init/asset.js';
+import { initializeScore } from '../models/score.model.js';
 import { setStage, getStage, initializeStage } from '../models/stage.model.js';
+import { initializeGold } from '../models/usergold.model.js';
 
 export const gameStart = (uuid) => {
     const { stages } = getGameAssets();
     initializeStage(uuid);
+    initializeScore(uuid);
+    initializeGold(uuid);
     // stages 배열의 0번째 = 첫번째 스테이지 받아 서버에 저장할 것
     setStage(uuid, stages.data[0].id);
     console.log('Stage: ', getStage(uuid));
